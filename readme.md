@@ -19,7 +19,6 @@
 
 1.  一个正在运行的 Home Assistant 实例。
 2.  一个已经成功部署并正在运行的 GPT-SoVITS 服务，并且您的 Home Assistant 服务器可以访问到它。
-3.  一个部署好的GPT-SoVITS API服务。
 
 ## 🚀 安装
 
