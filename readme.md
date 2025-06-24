@@ -30,7 +30,7 @@ HACS (Home Assistant Community Store) 是安装自定义集成的首选方法。
 2.  点击右上角的三个点，选择 **自定义存储库**。
 3.  在弹出的对话框中，填入此项目的 GitHub 仓库地址：
     ```
-    https://github.com/YOUR_USERNAME/ha-gpt-sovits-tts
+    https://github.com/yinghu183/ha-gpt-sovits-tts
     ```
 4.  在 **类别** 栏，选择 **集成 (Integration)**。
 5.  点击 **添加 (ADD)**。
