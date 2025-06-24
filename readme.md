@@ -2,7 +2,7 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/)
 
-本项目所有代码包括说明文件均使用gemini-2.5-pro完成，发布者仅负责提出要求和贴出BUG日志。
+## **本项目所有代码包括说明文件均使用gemini-2.5-pro完成，发布者仅负责提出要求和贴出BUG日志。**
 
 这是一个为 Home Assistant 开发的自定义文本转语音（TTS）集成。它允许您连接到自己部署的 [GPT-SoVITS](https://github.com/RVC-Boss/GPT-SoVITS) 服务，使用您自己训练的音色模型在智能家居中进行语音播报。
 
@@ -78,7 +78,7 @@ tts:
 
 配置并重启后，Home Assistant 中会自动创建一个名为 `tts.gpt_sovits_say` 的服务。
 
-您可以在 **开发者工具** > **服务** 中测试它，或在您的自动化和脚本中调用。
+您可以在 **开发者工具** > **动作** 中测试它，或在您的自动化和脚本中调用。
 
 ### 服务调用示例 (YAML)
 
