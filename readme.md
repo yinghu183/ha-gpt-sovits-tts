@@ -61,7 +61,7 @@ tts:
     
     # --- 可选项 (不填则使用默认值) ---
     prompt_language: "zh"   # 参考文本的语言 (zh, en, ja)，默认为 "zh"
-    text_language: "auto"     # 要合成的文本的语言 (zh, en, ja)，默认为 "auto"
+    text_language: "zh"     # 要合成的文本的语言 (zh, en, ja)
     speed: 1.0              # 语速，默认为 1.0
     temperature: 1.0        # 温度参数，影响声音的随机性，默认为 1.0
 ```
