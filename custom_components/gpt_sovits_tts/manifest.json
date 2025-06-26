@@ -5,7 +5,7 @@
   "issue_tracker": "https://github.com/yinghu183/ha-gpt-sovits-tts/issues",
   "codeowners": ["@yinghu183"],
   "requirements": [],
-  "version": "1.0.0",
+  "version": "1.1.0",
   "iot_class": "local_push",
   "dependencies": ["http"]
 }

@@ -33,6 +33,8 @@ CONF_TOP_K = "top_k"
 CONF_TOP_P = "top_p"
 CONF_TEMPERATURE = "temperature"
 CONF_SPEED = "speed"
+# --- NEW ---
+CONF_SAMPLE_AUDIO_BASE_PATH = "sample_audio_base_path"
 
 # --- Default Values ---
 DEFAULT_PORT = 9880
@@ -55,6 +57,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_TOP_P, default=DEFAULT_TOP_P): vol.Coerce(float),
         vol.Optional(CONF_TEMPERATURE, default=DEFAULT_TEMPERATURE): vol.Coerce(float),
         vol.Optional(CONF_SPEED, default=DEFAULT_SPEED): vol.Coerce(float),
+        # --- NEW: Add the optional base path to the schema ---
+        vol.Optional(CONF_SAMPLE_AUDIO_BASE_PATH): cv.string,
     }
 )
 
@@ -78,25 +82,19 @@ class GptSovitsProvider(Provider):
 
     @property
     def default_language(self) -> str:
-        """Return the default language."""
         return self._config[CONF_TEXT_LANGUAGE]
 
     @property
     def supported_languages(self) -> list[str]:
-        """Return a list of supported languages."""
         return ["zh", "en", "ja"]
 
     @property
     def default_options(self) -> dict[str, Any]:
-        """Return a dict include default options."""
-        return {
-            "speed": self._config[CONF_SPEED],
-        }
+        return {"speed": self._config[CONF_SPEED]}
 
     @property
     def supported_options(self) -> list[str]:
-        """Return a list of supported options."""
-        return ["speed"]
+        return ["speed", CONF_REFER_WAV_PATH, CONF_PROMPT_TEXT]
 
     async def async_get_tts_audio(
         self, message: str, language: str, options: dict[str, Any]
@@ -104,12 +102,28 @@ class GptSovitsProvider(Provider):
         """Load TTS audio."""
         websession = async_get_clientsession(self.hass)
         
+        refer_wav_path = options.get(CONF_REFER_WAV_PATH, self._config[CONF_REFER_WAV_PATH])
+        prompt_text = options.get(CONF_PROMPT_TEXT, self._config[CONF_PROMPT_TEXT])
+
+        # --- MODIFIED: Smart path construction logic ---
+        base_path = self._config.get(CONF_SAMPLE_AUDIO_BASE_PATH)
+        if base_path:
+            # If a base path is configured, treat the provided path as a relative filename.
+            # We robustly join them, handling potential leading/trailing slashes.
+            clean_base = base_path.rstrip('/')
+            clean_file = refer_wav_path.lstrip('/')
+            final_refer_wav_path = f"{clean_base}/{clean_file}"
+        else:
+            # If no base path, assume the provided path is the full, absolute path.
+            final_refer_wav_path = refer_wav_path
+
         params = {
-            "refer_wav_path": self._config[CONF_REFER_WAV_PATH],
-            "prompt_text": self._config[CONF_PROMPT_TEXT],
+            "refer_wav_path": final_refer_wav_path, # Use the final constructed path
+            "prompt_text": prompt_text,
             "prompt_language": self._config[CONF_PROMPT_LANGUAGE],
             "text": message,
             "text_language": language,
+            # ... (rest of the parameters are unchanged)
             "top_k": self._config[CONF_TOP_K],
             "top_p": self._config[CONF_TOP_P],
             "temperature": self._config[CONF_TEMPERATURE],
@@ -121,34 +135,22 @@ class GptSovitsProvider(Provider):
         base_url = f"http://{self._config[CONF_HOST]}:{self._config[CONF_PORT]}/"
         request_url = base_url + "?" + urlencode(params)
 
-        _LOGGER.debug("Requesting TTS from GPT-SoVITS: %s", request_url)
+        _LOGGER.debug(
+            "Requesting TTS. Final Refer WAV: %s. Full URL: %s",
+            final_refer_wav_path,
+            request_url
+        )
 
         try:
-            # --- THE FIX IS HERE ---
-            # Corrected 'aiohotp' to 'aiohttp'
             timeout = aiohttp.ClientTimeout(total=300)
-
             async with websession.get(request_url, timeout=timeout) as resp:
                 if resp.status != HTTPStatus.OK:
                     error_text = await resp.text()
-                    _LOGGER.error(
-                        "Error from GPT-SoVITS API: %s - %s",
-                        resp.status,
-                        error_text,
-                    )
+                    _LOGGER.error("Error from GPT-SoVITS API: %s - %s", resp.status, error_text)
                     return (None, None)
-
                 _LOGGER.info("Successfully received audio stream from GPT-SoVITS.")
-                
                 audio_data = await resp.read()
                 return ("wav", audio_data)
-
-        except aiohttp.ClientError as err:
-            _LOGGER.error("aiohttp client error: %s", err)
-            return (None, None)
-        except asyncio.TimeoutError:
-            _LOGGER.error("Timeout connecting to GPT-SoVITS API at %s", base_url)
-            return (None, None)
         except Exception as err:
             _LOGGER.error("Unknown error occurred: %s", err)
             return (None, None)

@@ -51,25 +51,33 @@ HACS (Home Assistant Community Store) 是安装自定义集成的首选方法。
 
 ```yaml
 # configuration.yaml 示例
+
 tts:
   - platform: gpt_sovits
     # --- 必填项 ---
-    host: "192.168.xxx.xxx"  # 您的 GPT-SoVITS 服务器的 IP 地址
-    port: xxxx              # GPT-SoVITS 服务的端口号，默认为 9880
-    refer_wav_path: "/workspace/GPT-SoVITS/output/slicer_opt/your_audio.wav" # 重要：这是位于GPT-SoVITS服务器上的参考音频的绝对路径，不是Home Assistant服务器上的路径
+    host: "192.168.1.107"  # 您的 GPT-SoVITS 服务器的 IP 地址
+    port: 9880              # GPT-SoVITS 服务的端口号，默认为 9880
+    refer_wav_path: "default.wav" # 默认参考音频的文件名或完整路径
     prompt_text: "这是参考音频对应的文本内容。" # 与参考音频内容匹配的文本
     
     # --- 可选项 (不填则使用默认值) ---
+
     prompt_language: "zh"   # 参考文本的语言 (zh, en, ja)，默认为 "zh"
-    text_language: "zh"     # 要合成的文本的语言 (zh, en, ja)
+    text_language: "zh"     # 要合成的文本的语言 (zh, en, ja)，默认为 "zh"
     speed: 1.0              # 语速，默认为 1.0
     temperature: 1.0        # 温度参数，影响声音的随机性，默认为 1.0
-```
+    
+    # --- 新增功能：参考音频基础路径 (强烈推荐，避免在optinons中指定音色时输入过长的路径) ---
+    sample_audio_base_path: "/workspace/GPT-SoVITS/output/Sample/"
+    
+    
+
 **配置说明:**
 
 - `host`: 运行 GPT-SoVITS 服务的服务器IP。
-- `refer_wav_path`: **这是最关键的配置**。它必须是 **GPT-SoVITS 服务器上**参考音频的**绝对路径**。集成会把这个路径原封不动地发送给 GPT-SoVITS API。
+- `refer_wav_path`: 默认的参考音频路径。如果配置了 sample_audio_base_path，这里可以只写文件名（如 default.wav）；否则，需要写服务器上的绝对路径。。
 - `prompt_text`: 与参考音频内容完全匹配的文本，帮助模型更好地进行音色克隆。
+- `sample_audio_base_path`:  (可选, 推荐) 设置您在服务器上存放所有参考音频的公共目录。配置此项后，您在调用服务时只需提供文件名即可，极大简化操作。
 
 完成配置后，请再次**重启 Home Assistant** 以加载您的配置。
 
@@ -81,6 +89,8 @@ tts:
 
 ### 服务调用示例 (YAML)
 
+以下示例假设您已配置 `sample_audio_base_path`。
+
 ```yaml
 service: tts.gpt_sovits_say
 target:
@@ -90,14 +100,19 @@ data:
   language: "zh" # 可选，指定本次播报的语言
   options:
     speed: 1.2 # 可选，临时覆盖默认语速
-```
+    
+    # --- 动态切换音色 ---
+    # 只需提供文件名，集成会自动拼接基础路径。如未配置 `sample_audio_base_path`，`refer_wav_path`需填写完整路径。
+    refer_wav_path: "happy_voice.wav" 
+    prompt_text: "今天天气真不错呀！"
+
 ## ❓ 常见问题
 
 **Q: 调用服务后，音箱没有声音，日志里出现超时错误。**
 **A:** GPT-SoVITS 生成音频需要一定时间，特别是长文本。本集成内置了较长的超时时间（300秒）。如果仍然超时，请检查您的 GPT-SoVITS 服务器是否性能不足，或者网络连接是否稳定。
 
 **Q: 我可以有多个音色吗？**
-**A:** 当前版本（v1.0.0）通过 `configuration.yaml` 只能配置一个固定的音色。未来的版本计划支持 UI 配置和动态选择音色。
+**A:** 当前版本（v1.1.0）已支持调用服务时在options中指定音色参考音频。
 
 ## 🤝 贡献
 
