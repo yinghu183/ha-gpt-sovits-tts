@@ -69,7 +69,7 @@ tts:
     
     # --- 新增功能：参考音频基础路径 (强烈推荐，避免在optinons中指定音色时输入过长的路径) ---
     sample_audio_base_path: "/workspace/GPT-SoVITS/output/Sample/"
-    
+```
     
 
 **配置说明:**
@@ -105,6 +105,7 @@ data:
     # 只需提供文件名，集成会自动拼接基础路径。如未配置 `sample_audio_base_path`，`refer_wav_path`需填写完整路径。
     refer_wav_path: "happy_voice.wav" 
     prompt_text: "今天天气真不错呀！"
+```
 
 ## ❓ 常见问题
 
